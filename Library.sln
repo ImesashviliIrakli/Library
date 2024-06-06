@@ -7,23 +7,25 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{01931EBA-DAC
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "core", "core", "{C2E13DD8-A168-492F-AF5F-03B5FDF57E0C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domain", "Domain\Domain.csproj", "{0C6DA59F-1BF6-4233-B526-76CDEE7FB389}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domain", "Domain\Domain.csproj", "{0C6DA59F-1BF6-4233-B526-76CDEE7FB389}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application", "Application\Application.csproj", "{904F9562-5F99-4318-8731-5642770FD1D0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Application", "Application\Application.csproj", "{904F9562-5F99-4318-8731-5642770FD1D0}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{0046EE76-AC57-487F-A48C-9E42DC0A2878}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Persistance", "Persistance\Persistance.csproj", "{FB6E0C5A-42B6-42B7-9690-D39698733124}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Persistance", "Persistance\Persistance.csproj", "{FB6E0C5A-42B6-42B7-9690-D39698733124}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity", "Identity\Identity.csproj", "{3040F3BD-D024-4B1B-9A04-D7D85BB76D1D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Identity", "Identity\Identity.csproj", "{3040F3BD-D024-4B1B-9A04-D7D85BB76D1D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "api", "api", "{49E221C0-4837-4326-8435-F8D7710F880B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Library.Api", "Library.Api\Library.Api.csproj", "{1643BF63-8E55-4F0C-BBFF-8D2E9FE97379}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Library.Api", "Library.Api\Library.Api.csproj", "{1643BF63-8E55-4F0C-BBFF-8D2E9FE97379}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ui", "ui", "{7F3B460A-A0E3-4105-B526-B401B90777FA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Library.UI", "Library.UI\Library.UI.csproj", "{EE331231-ED67-4C34-86E8-84EA31E0792C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Library.UI", "Library.UI\Library.UI.csproj", "{EE331231-ED67-4C34-86E8-84EA31E0792C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure", "Infrastructure\Infrastructure.csproj", "{0865419A-518C-409C-A703-5BD0ED7501F1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -55,6 +57,10 @@ Global
 		{EE331231-ED67-4C34-86E8-84EA31E0792C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EE331231-ED67-4C34-86E8-84EA31E0792C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EE331231-ED67-4C34-86E8-84EA31E0792C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0865419A-518C-409C-A703-5BD0ED7501F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0865419A-518C-409C-A703-5BD0ED7501F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0865419A-518C-409C-A703-5BD0ED7501F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0865419A-518C-409C-A703-5BD0ED7501F1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -70,6 +76,7 @@ Global
 		{1643BF63-8E55-4F0C-BBFF-8D2E9FE97379} = {49E221C0-4837-4326-8435-F8D7710F880B}
 		{7F3B460A-A0E3-4105-B526-B401B90777FA} = {01931EBA-DACD-493C-9A1E-5A43EE109573}
 		{EE331231-ED67-4C34-86E8-84EA31E0792C} = {7F3B460A-A0E3-4105-B526-B401B90777FA}
+		{0865419A-518C-409C-A703-5BD0ED7501F1} = {0046EE76-AC57-487F-A48C-9E42DC0A2878}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BB3F0409-27C6-4D39-9CB8-AF2AF913DBD2}
