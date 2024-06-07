@@ -12,4 +12,6 @@ public interface IBookService
     Task DeleteBookAsync(int id);
     Task CheckoutBookAsync(int id);
     Task ReturnBookAsync(int id);
+    Task AddAuthorToBookAsync(int bookId, int authorId);
+    Task RemoveAuthorFromBookAsync(int bookId, int authorId);
 }

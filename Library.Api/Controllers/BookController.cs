@@ -67,4 +67,18 @@ public class BooksController : ControllerBase
         await _bookService.ReturnBookAsync(id);
         return Ok(_response);
     }
+
+    [HttpPost("AddAuthorToBook")]
+    public async Task<IActionResult> AddAuthorToBook(int bookId, int authorId)
+    {
+        await _bookService.AddAuthorToBookAsync(bookId, authorId);
+        return Ok(_response);
+    }
+
+    [HttpPost("RemoveAuthorFromBook")]
+    public async Task<IActionResult> RemoveAuthorFromBook(int bookId, int authorId)
+    {
+        await _bookService.RemoveAuthorFromBookAsync(bookId, authorId);
+        return Ok(_response);
+    }
 }

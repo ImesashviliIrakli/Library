@@ -89,12 +89,40 @@ public class BookService : IBookService
         var book = await _bookRepository.GetByIdAsync(id);
         CheckBook(book, id);
 
-
         if (!book.IsTaken)
             throw new InvalidOperationException($"Book with Id:{id} is not checked out.");
 
         book.IsTaken = false;
         await _bookRepository.UpdateAsync(book);
+    }
+
+    public async Task AddAuthorToBookAsync(int bookId, int authorId)
+    {
+        var book = await _bookRepository.GetByIdAsync(bookId);
+
+        CheckBook(book, bookId);
+
+        var author = await _authorRepository.GetByIdAsync(authorId);
+        
+        CheckAuthor(author, authorId);
+
+        if (book.Authors.Exists(x => x.Id == authorId))
+            throw new BadRequestException($"Author with Id:{authorId} already exists");
+
+        await _bookRepository.AddAuthorToBookAsync(book, author);
+    }
+
+    public async Task RemoveAuthorFromBookAsync(int bookId, int authorId)
+    {
+        var book = await _bookRepository.GetByIdAsync(bookId);
+        
+        CheckBook(book, bookId);
+
+        var authorToRemove = book.Authors.FirstOrDefault(a => a.Id == authorId);
+        
+        CheckAuthor(authorToRemove, authorId);
+
+        await _bookRepository.RemoveAuthorFromBookAsync(book, authorToRemove);
     }
 
     private async Task Validate(Book book)
@@ -107,6 +135,12 @@ public class BookService : IBookService
     private void CheckBook(Book book, int id)
     {
         if (book == null)
+            throw new NotFoundException($"Book with id:{id} not found");
+    }
+
+    private void CheckAuthor(Author author, int id)
+    {
+        if (author == null)
             throw new NotFoundException($"Book with id:{id} not found");
     }
 }

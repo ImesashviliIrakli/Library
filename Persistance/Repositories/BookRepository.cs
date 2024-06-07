@@ -1,4 +1,5 @@
-﻿using Application.Interfaces.Repositories;
+﻿using Application.Exceptions;
+using Application.Interfaces.Repositories;
 using Domain;
 using Microsoft.EntityFrameworkCore;
 using Persistance.Data;
@@ -46,5 +47,20 @@ public class BookRepository : IBookRepository
             _context.Books.Remove(book);
             await _context.SaveChangesAsync();
         }
+    }
+
+    public async Task AddAuthorToBookAsync(Book book, Author author)
+    {
+        if (!book.Authors.Contains(author))
+            book.Authors.Add(author);
+
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task RemoveAuthorFromBookAsync(Book book, Author author)
+    {
+        book.Authors.Remove(author);
+
+        await _context.SaveChangesAsync();
     }
 }
