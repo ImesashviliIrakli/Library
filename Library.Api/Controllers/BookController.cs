@@ -3,6 +3,7 @@ using Application.Interfaces.Services;
 using Application.Models;
 using Application.Models.Book;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace Library.Api.Controllers;
 
@@ -20,22 +21,27 @@ public class BooksController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult> GetBooks()
+    public async Task<IActionResult> GetBooks()
     {
         _response.Result = await _bookService.GetAllBooksAsync();
         return Ok(_response);
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult> GetBook(int id)
+    public async Task<IActionResult> GetBook(int id)
     {
         _response.Result = await _bookService.GetBookByIdAsync(id);
         return Ok(_response);
     }
 
     [HttpPost]
-    public async Task<ActionResult> AddBook(CreateBookDto bookDto)
+    public async Task<IActionResult> AddBook([FromBody] CreateBookDto bookDto)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
         await _bookService.AddBookAsync(bookDto);
         return Ok(_response);
     }

@@ -1,0 +1,54 @@
+﻿@model List<BookListDto>
+
+@{
+    ViewData["Title"] = "Books";
+}
+
+<h1>Books</h1>
+
+<div class="container">
+        
+    <p>
+        <a asp-action="Create" class="btn btn-primary">Create New Book</a>
+    </p>
+
+    <div class="row">
+        @foreach (var book in Model)
+        {
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <img src="@book.Image" class="card-img-top" alt="Book Image">
+                    <div class="card-body">
+                        <h5 class="card-title">@book.Title</h5>
+                        <p class="card-text">@book.Description</p>
+                        <a href="@Url.Action("Details", new { id = book.Id })" class="btn btn-primary">Details</a>
+                        <a href="@Url.Action("Edit", new { id = book.Id })" class="btn btn-secondary">Edit</a>
+                        <button class="btn btn-danger" onclick="deleteBook(@book.Id)">Delete</button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function deleteBook(id) {
+            var confirmDelete = confirm("Are you sure you want to delete this book?");
+            if (confirmDelete) {
+                $.ajax({
+                    url: '/Books/Delete/' + id,
+                    type: 'DELETE',
+                    success: function (result) {
+                        // Handle success
+                        location.reload(); // Reload the page after successful delete
+                    },
+                    error: function (xhr, status, error) {
+                        // Handle error
+                        console.error(xhr.responseText);
+                    }
+                });
+            }
+        }
+    </script>
+}

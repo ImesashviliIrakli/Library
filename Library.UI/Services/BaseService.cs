@@ -2,6 +2,7 @@
 using Library.UI.Models.Dtos;
 using Library.UI.Utility;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using System.Net;
 using System.Text;
 using System.Text.Json;
@@ -35,9 +36,18 @@ public class BaseService : IBaseService
 
             message.RequestUri = new Uri(requestDto.Url);
 
+            var temp = JsonConvert.SerializeObject(requestDto.Data, new JsonSerializerSettings
+            {
+                ContractResolver = new CamelCasePropertyNamesContractResolver()
+            });
+
             if (requestDto.Data != null)
             {
-                message.Content = new StringContent(JsonConvert.SerializeObject(requestDto.Data), Encoding.UTF8, "application/json");
+                message.Content = new StringContent(JsonConvert.SerializeObject(requestDto.Data, new JsonSerializerSettings
+                {
+                    ContractResolver = new CamelCasePropertyNamesContractResolver()
+                }),
+                Encoding.UTF8, "application/json");
             }
 
             switch (requestDto.ApiType)

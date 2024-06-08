@@ -13,11 +13,13 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
 builder.Services.AddHttpClient<IAccountService, AccountService>();
 builder.Services.AddHttpClient<IAuthorService, AuthorService>();
+builder.Services.AddHttpClient<IBookService, BookService>();
 
 builder.Services.AddScoped<IBaseService, BaseService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<ITokenProvider, TokenProvider>();
 builder.Services.AddScoped<IAuthorService, AuthorService>();
+builder.Services.AddScoped<IBookService, BookService>();
 
 // Authentication
 builder.Services.AddAuthentication("LibraryCookie")
