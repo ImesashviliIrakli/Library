@@ -12,10 +12,12 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
 builder.Services.AddHttpClient<IAccountService, AccountService>();
+builder.Services.AddHttpClient<IAuthorService, AuthorService>();
 
 builder.Services.AddScoped<IBaseService, BaseService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<ITokenProvider, TokenProvider>();
+builder.Services.AddScoped<IAuthorService, AuthorService>();
 
 // Authentication
 builder.Services.AddAuthentication("LibraryCookie")
