@@ -1,6 +1,7 @@
 ﻿using Library.UI.Interfaces;
 using Library.UI.Models.Dtos;
 using Library.UI.Utility;
+using Newtonsoft.Json;
 using System.Net;
 using System.Text;
 using System.Text.Json;
@@ -21,7 +22,7 @@ public class BaseService : IBaseService
     {
         try
         {
-            HttpClient client = _httpClientFactory.CreateClient("UniversityAPI");
+            HttpClient client = _httpClientFactory.CreateClient("LibraryAPI");
             HttpRequestMessage message = new();
 
             message.Headers.Add("Accept", "application/json");
@@ -36,7 +37,7 @@ public class BaseService : IBaseService
 
             if (requestDto.Data != null)
             {
-                message.Content = new StringContent(JsonSerializer.Serialize(requestDto.Data), Encoding.UTF8, "application/json");
+                message.Content = new StringContent(JsonConvert.SerializeObject(requestDto.Data), Encoding.UTF8, "application/json");
             }
 
             switch (requestDto.ApiType)
@@ -61,16 +62,16 @@ public class BaseService : IBaseService
             switch (apiResponse.StatusCode)
             {
                 case HttpStatusCode.NotFound:
-                    return new() { IsSuccess = false, Message = "Not Found" };
+                    return new() { Status = 1, Message = "Not Found" };
                 case HttpStatusCode.Forbidden:
-                    return new() { IsSuccess = false, Message = "Forbidden" };
+                    return new() { Status = 1, Message = "Forbidden" };
                 case HttpStatusCode.Unauthorized:
-                    return new() { IsSuccess = false, Message = "Unauthorized" };
+                    return new() { Status = 1, Message = "Unauthorized" };
                 case HttpStatusCode.InternalServerError:
-                    return new() { IsSuccess = false, Message = "Internal Server Error" };
+                    return new() { Status = 1, Message = "Internal Server Error" };
                 default:
                     var apiContent = await apiResponse.Content.ReadAsStringAsync();
-                    var apiResponseDto = JsonSerializer.Deserialize<ResponseDto>(apiContent);
+                    var apiResponseDto = JsonConvert.DeserializeObject<ResponseDto>(apiContent);
                     return apiResponseDto;
             }
         }
@@ -79,7 +80,7 @@ public class BaseService : IBaseService
             var dto = new ResponseDto
             {
                 Message = ex.Message,
-                IsSuccess = false
+                Status = 1
             };
 
             return dto;

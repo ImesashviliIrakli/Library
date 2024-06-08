@@ -1,6 +1,7 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
+using Library.UI.Interfaces;
+using Library.UI.Services;
+using Library.UI.Utility;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,25 +11,23 @@ var configuration = builder.Configuration;
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
+builder.Services.AddHttpClient<IAccountService, AccountService>();
 
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
+builder.Services.AddScoped<IBaseService, BaseService>();
+builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<ITokenProvider, TokenProvider>();
+
+// Authentication
+builder.Services.AddAuthentication("LibraryCookie")
+    .AddCookie("LibraryCookie", options =>
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = configuration["JwtOptions:Issuer"],
-        ValidAudience = configuration["JwtOptions:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
-    };
-});
+        options.Cookie.Name = "LibraryAuthCookie";
+        options.ExpireTimeSpan = TimeSpan.FromHours(10);
+        options.LoginPath = "/Auth/Login";
+        options.AccessDeniedPath = "/Auth/AccessDenied";
+    });
+
+SD.LibraryAPIBase = builder.Configuration["ServiceUrls:LibraryAPI"];
 
 var app = builder.Build();
 
@@ -36,7 +35,6 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 

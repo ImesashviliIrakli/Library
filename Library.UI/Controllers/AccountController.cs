@@ -3,17 +3,18 @@ using Library.UI.Models.Dtos;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Json;
 
 namespace Library.UI.Controllers;
 
-public class AuthController : Controller
+public class AccountController : Controller
 {
-    private readonly IAuthService _authService;
+    private readonly IAccountService _authService;
     private readonly ITokenProvider _tokenProvider;
-    public AuthController(IAuthService authService, ITokenProvider tokenProvider)
+    public AccountController(IAccountService authService, ITokenProvider tokenProvider)
     {
         _authService = authService;
         _tokenProvider = tokenProvider;
@@ -31,11 +32,11 @@ public class AuthController : Controller
     {
         ResponseDto login = await _authService.LoginAsync(loginRequestDto);
 
-        if (login != null && login.IsSuccess)
+        if (login != null && login.Status == 0)
         {
             string result = Convert.ToString(login.Result);
 
-            LoginResponseDto loginResponseDto = JsonSerializer.Deserialize<LoginResponseDto>(result);
+            LoginResponseDto loginResponseDto = JsonConvert.DeserializeObject<LoginResponseDto>(result);
 
             await SignInAsync(loginResponseDto);
 
@@ -59,9 +60,10 @@ public class AuthController : Controller
     [HttpPost]
     public async Task<IActionResult> Register(RegistrationRequestDto registrationRequestDto)
     {
+        registrationRequestDto.UserName = registrationRequestDto.Email;
         ResponseDto register = await _authService.RegisterAsync(registrationRequestDto);
 
-        if (register != null && register.IsSuccess)
+        if (register != null && register.Status == 0)
         {
             TempData["success"] = "Registration was successful";
 
@@ -85,25 +87,29 @@ public class AuthController : Controller
 
     private async Task SignInAsync(LoginResponseDto loginResponseDto)
     {
-
         var handler = new JwtSecurityTokenHandler();
-
-        var jwt = handler.ReadJwtToken(loginResponseDto.Token);
+        var jwtToken = handler.ReadJwtToken(loginResponseDto.Token);
 
         var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
 
-        identity.AddClaim(new Claim(JwtRegisteredClaimNames.Email, jwt.Claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Email).Value));
-        identity.AddClaim(new Claim(JwtRegisteredClaimNames.Sub, jwt.Claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Sub).Value));
-        identity.AddClaim(new Claim(JwtRegisteredClaimNames.Name, jwt.Claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Name).Value));
-        identity.AddClaim(new Claim(JwtRegisteredClaimNames.FamilyName, jwt.Claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.FamilyName).Value));
-        identity.AddClaim(new Claim(JwtRegisteredClaimNames.GivenName, jwt.Claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.GivenName).Value));
-        identity.AddClaim(new Claim(JwtRegisteredClaimNames.UniqueName, jwt.Claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.UniqueName).Value));
-        identity.AddClaim(new Claim(ClaimTypes.Name, jwt.Claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Email).Value));
-        identity.AddClaim(new Claim(ClaimTypes.Role, jwt.Claims.FirstOrDefault(x => x.Type == "role").Value));
+        // Helper method to safely add claims
+        void AddClaimIfPresent(string claimType, string jwtClaimType)
+        {
+            var claimValue = jwtToken.Claims.FirstOrDefault(x => x.Type == jwtClaimType)?.Value;
+            if (!string.IsNullOrEmpty(claimValue))
+            {
+                identity.AddClaim(new Claim(claimType, claimValue));
+            }
+        }
+
+        AddClaimIfPresent(ClaimTypes.Email, "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress");
+        AddClaimIfPresent(ClaimTypes.Name, "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name");
+        AddClaimIfPresent(ClaimTypes.NameIdentifier, "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
 
         var principal = new ClaimsPrincipal(identity);
 
-        await HttpContext.SignInAsync("PortalCookie", principal);
+        await HttpContext.SignInAsync("LibraryCookie", principal);
     }
+
 }
 

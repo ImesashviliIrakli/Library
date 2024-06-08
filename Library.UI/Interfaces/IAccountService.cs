@@ -2,7 +2,7 @@
 
 namespace Library.UI.Interfaces;
 
-public interface IAuthService
+public interface IAccountService
 {
     public Task<ResponseDto> LoginAsync(LoginRequestDto loginRequestDto);
     public Task<ResponseDto> RegisterAsync(RegistrationRequestDto registrationRequestDto);

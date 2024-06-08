@@ -55,10 +55,7 @@ public class AuthService : IAuthService
 
         var response = new AuthResponse
         {
-            Id = user.Id,
             Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
-            Email = user.Email,
-            UserName = user.UserName
         };
 
         _logger.LogInformation($"{user.UserName} logged in successfully");
@@ -86,20 +83,11 @@ public class AuthService : IAuthService
                     throw new Exception(BuildErrorMessage(createUserResult.Errors));
                 }
 
-                var addRoleResult = await _userManager.AddToRoleAsync(user, request.RoleName);
-
-                if (!addRoleResult.Succeeded)
-                {
-                    await transaction.RollbackAsync();
-                    throw new Exception(BuildErrorMessage(addRoleResult.Errors));
-                }
-
                 var claims = new List<Claim>
                 {
                     new(ClaimTypes.Email, user.Email),
                     new(ClaimTypes.Name, user.UserName),
-                    new(ClaimTypes.NameIdentifier, user.Id),
-                    new(ClaimTypes.Role, request.RoleName)
+                    new(ClaimTypes.NameIdentifier, user.Id)
                 };
 
                 var addClaimsResult = await _userManager.AddClaimsAsync(user, claims);
