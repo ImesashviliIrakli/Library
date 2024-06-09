@@ -81,4 +81,25 @@ public class AuthorService : IAuthorService
         if (author == null)
             throw new NotFoundException($"Author with id:{id} not found");
     }
+
+    public async Task<IEnumerable<AuthorDto>> GetAuthorsByIdsAsync(List<int> ids)
+    {
+        if (ids == null)
+            throw new BadRequestException($"Author is neccessary");
+
+        var authors = await _authorRepository.GetByIdsAsync(ids);
+
+        var result = _mapper.Map<IEnumerable<AuthorDto>>(authors);
+
+        return result;
+    }
+
+    public async Task<IEnumerable<AuthorDto>> GetAuthorsByNameAsync(string authorName)
+    {
+        var authors = await _authorRepository.GetAuthorsByNameAsync(authorName);
+
+        var result = _mapper.Map<IEnumerable<AuthorDto>>(authors);
+
+        return result;
+    }
 }

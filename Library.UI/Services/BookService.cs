@@ -18,7 +18,16 @@ public class BookService : IBookService
         return await _baseService.SendAsync(new RequestDto()
         {
             ApiType = ApiType.GET,
-            Url = SD.LibraryAPIBase + "/api/Books"
+            Url = SD.LibraryAPIBase + "/api/Books/"
+        });
+    }
+
+    public async Task<ResponseDto> GetBooksByTitleAsync(string title)
+    {
+        return await _baseService.SendAsync(new RequestDto()
+        {
+            ApiType = ApiType.GET,
+            Url = SD.LibraryAPIBase + "/api/Books/" + title
         });
     }
 

@@ -27,8 +27,8 @@ builder.Services.AddAuthentication("LibraryCookie")
     {
         options.Cookie.Name = "LibraryAuthCookie";
         options.ExpireTimeSpan = TimeSpan.FromHours(10);
-        options.LoginPath = "/Auth/Login";
-        options.AccessDeniedPath = "/Auth/AccessDenied";
+        options.LoginPath = "/Account/Login";
+        options.AccessDeniedPath = "/Account/AccessDenied";
     });
 
 SD.LibraryAPIBase = builder.Configuration["ServiceUrls:LibraryAPI"];

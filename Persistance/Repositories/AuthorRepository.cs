@@ -45,4 +45,16 @@ public class AuthorRepository : IAuthorRepository
             await _context.SaveChangesAsync();
         }
     }
+
+    public async Task<IEnumerable<Author>> GetByIdsAsync(List<int> ids)
+    {
+        return await _context.Authors.Where(x => ids.Contains(x.Id)).ToListAsync();
+    }
+
+    public async Task<IEnumerable<Author>> GetAuthorsByNameAsync(string authorName)
+    {
+        return await _context.Authors
+        .Where(x => x.FirstName.Contains(authorName))
+        .ToListAsync();
+    }
 }

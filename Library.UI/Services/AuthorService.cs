@@ -23,12 +23,31 @@ public class AuthorService : IAuthorService
         });
     }
 
+    public async Task<ResponseDto> GetAuthorsByNameAsync(string authorName)
+    {
+        return await _baseService.SendAsync(new RequestDto()
+        {
+            ApiType = ApiType.GET,
+            Url = SD.LibraryAPIBase + "/api/Authors/" + authorName
+        });
+    }
+
     public async Task<ResponseDto> GetAuthorByIdAsync(int id)
     {
         return await _baseService.SendAsync(new RequestDto()
         {
             ApiType = ApiType.GET,
             Url = SD.LibraryAPIBase + $"/api/Authors/{id}"
+        });
+    }
+
+    public async Task<ResponseDto> GetAuthorsByIdsAsync(List<int> ids)
+    {
+        return await _baseService.SendAsync(new RequestDto()
+        {
+            ApiType = ApiType.POST,
+            Data = ids,
+            Url = SD.LibraryAPIBase + $"/api/Authors/GetAuthorsByIds"
         });
     }
 

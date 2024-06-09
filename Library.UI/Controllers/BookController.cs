@@ -1,11 +1,13 @@
 ﻿using Library.UI.Interfaces;
 using Library.UI.Models.AuthorDtos;
 using Library.UI.Models.BookDtos;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
 namespace Library.UI.Controllers;
 
+[Authorize]
 public class BookController : Controller
 {
     private readonly IBookService _bookService;
@@ -17,7 +19,6 @@ public class BookController : Controller
         _authorService = authorService;
     }
 
-    // Index action to display all books
     public async Task<IActionResult> Index()
     {
         var response = await _bookService.GetAllBooksAsync();
@@ -28,12 +29,33 @@ public class BookController : Controller
         }
         else
         {
-            // Handle error response
+            TempData["error"] = response.Message;
             return RedirectToAction("Error", "Home");
         }
     }
 
-    // Details action to display book details and checkout functionality
+    [HttpGet]
+    public async Task<IActionResult> Search(string title)
+    {
+        if (string.IsNullOrEmpty(title))
+        {
+            // If no title provided, return to Index action
+            return RedirectToAction(nameof(Index));
+        }
+
+        var response = await _bookService.GetBooksByTitleAsync(title);
+        if (response.Status == 0)
+        {
+            var books = JsonConvert.DeserializeObject<List<BookListDto>>(response.Result.ToString());
+            return View("Index", books);
+        }
+        else
+        {
+            TempData["error"] = response.Message;
+            return RedirectToAction(nameof(Index));
+        }
+    }
+
     public async Task<IActionResult> Details(int id)
     {
         var response = await _bookService.GetBookByIdAsync(id);
@@ -42,14 +64,11 @@ public class BookController : Controller
             var book = JsonConvert.DeserializeObject<BookDetailsDto>(response.Result.ToString());
             return View(book);
         }
-        else
-        {
-            // Handle error response
-            return RedirectToAction("Error", "Home");
-        }
+
+        TempData["error"] = response.Message;
+        return RedirectToAction(nameof(Index));
     }
 
-    // GET action to display form for creating a new book
     public async Task<IActionResult> Create()
     {
         var response = await _authorService.GetAuthorsAsync();
@@ -59,130 +78,186 @@ public class BookController : Controller
             ViewBag.Authors = authors;
             return View();
         }
-        else
-        {
-            // Handle error response
-            return RedirectToAction("Error", "Home");
-        }
+
+        TempData["error"] = response.Message;
+        return RedirectToAction(nameof(Index));
     }
 
-    // POST action to handle creation of a new book
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(CreateBookDto bookDto, List<int> authors)
+    public async Task<IActionResult> Create(CreateBookDto bookDto, List<int> authors, IFormFile imageFile)
     {
-        foreach (var authorId in authors)
-            bookDto.Authors.Add(new AuthorDto { Id = authorId });
+        if (imageFile != null && imageFile.Length > 0)
+        {
+            var fileName = Path.GetFileName(imageFile.FileName);
+            var extension = Path.GetExtension(fileName);
+
+            var uniqueFileName = Guid.NewGuid().ToString() + extension;
+
+            var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
+
+            var filePath = Path.Combine(uploadsDir, uniqueFileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await imageFile.CopyToAsync(stream);
+            }
+
+            bookDto.Image = $"/images/{uniqueFileName}";
+        }
+
+        var getAuthors = await _authorService.GetAuthorsByIdsAsync(authors);
+        if (getAuthors.Status == 0)
+        {
+            var authorDtos = JsonConvert.DeserializeObject<List<AuthorDto>>(getAuthors.Result.ToString());
+            foreach (var author in authorDtos)
+                bookDto.Authors.Add(author);
+        }
+        else
+        {
+            TempData["error"] = getAuthors.Message;
+            return View();
+        }
 
         var response = await _bookService.AddBookAsync(bookDto);
         if (response.Status == 0)
         {
+            TempData["success"] = "Created Book";
             return RedirectToAction(nameof(Index));
         }
-        else
-        {
-            // Handle error response
-            return RedirectToAction("Error", "Home");
-        }
+
+        TempData["error"] = response.Message;
+        return View();
     }
 
-    // GET action to display form for editing an existing book
     public async Task<IActionResult> Edit(int id)
     {
         var response = await _bookService.GetBookByIdAsync(id);
         if (response.Status == 0)
         {
-            var book = response.Result as BookDetailsDto;
+            var bookDetails = JsonConvert.DeserializeObject<BookDetailsDto>(response.Result.ToString());
+
+            ViewBag.BookAuthors = bookDetails.Authors;
 
             var authorsResponse = await _authorService.GetAuthorsAsync();
             if (authorsResponse.Status == 0)
             {
-                var authors = JsonConvert.DeserializeObject<List<AuthorDto>>(authorsResponse.Result.ToString()); ;
-                ViewBag.Authors = authors;
-                return View(book);
+                ViewBag.Authors = JsonConvert.DeserializeObject<List<AuthorDto>>(authorsResponse.Result.ToString());
+
+                var updateBookDto = new UpdateBookDto
+                {
+                    Id = bookDetails.Id,
+                    Title = bookDetails.Title,
+                    Description = bookDetails.Description,
+                    Image = bookDetails.Image,
+                    Rating = bookDetails.Rating,
+                    PublicationDate = bookDetails.PublicationDate,
+                    IsTaken = bookDetails.IsTaken
+                };
+
+                return View(updateBookDto);
             }
-            else
-            {
-                // Handle error response
-                return RedirectToAction("Error", "Home");
-            }
+            TempData["error"] = response.Message;
+            return RedirectToAction(nameof(Index));
         }
-        else
-        {
-            // Handle error response
-            return RedirectToAction("Error", "Home");
-        }
+
+        TempData["error"] = response.Message;
+        return RedirectToAction(nameof(Index));
     }
 
-    // POST action to handle updating an existing book
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, UpdateBookDto bookDto)
+    public async Task<IActionResult> Edit(int id, UpdateBookDto bookDto, IFormFile imageFile)
     {
+        if (imageFile != null && imageFile.Length > 0)
+        {
+            if (!string.IsNullOrEmpty(bookDto.Image))
+            {
+                var existingImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", bookDto.Image.TrimStart('/'));
+                if (System.IO.File.Exists(existingImagePath))
+                    System.IO.File.Delete(existingImagePath);
+            }
+
+            var fileName = Path.GetFileName(imageFile.FileName);
+            var extension = Path.GetExtension(fileName);
+
+            var uniqueFileName = Guid.NewGuid().ToString() + extension;
+
+            var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
+
+            var filePath = Path.Combine(uploadsDir, uniqueFileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await imageFile.CopyToAsync(stream);
+            }
+
+            bookDto.Image = $"/images/{uniqueFileName}";
+        }
+
         var response = await _bookService.UpdateBookAsync(id, bookDto);
         if (response.Status == 0)
         {
+            TempData["success"] = "Updated Book";
             return RedirectToAction(nameof(Index));
         }
-        else
-        {
-            // Handle error response
-            return RedirectToAction("Error", "Home");
-        }
+        TempData["error"] = response.Message;
+        return RedirectToAction(nameof(Edit), new { id = id });
     }
 
-    // POST action to handle deleting an existing book
-    [HttpPost, ActionName("Delete")]
+
+    [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteConfirmed(int id)
+    public async Task<JsonResult> DeleteConfirmed(int id)
     {
+        var getBookDetails = await _bookService.GetBookByIdAsync(id);
+        if (getBookDetails.Status == 0)
+        {
+            var bookDto = JsonConvert.DeserializeObject<BookDetailsDto>(getBookDetails.Result.ToString());
+            if (!string.IsNullOrEmpty(bookDto.Image))
+            {
+                var existingImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", bookDto.Image.TrimStart('/'));
+                if (System.IO.File.Exists(existingImagePath))
+                    System.IO.File.Delete(existingImagePath);
+            }
+        }
+
         var response = await _bookService.DeleteBookAsync(id);
         if (response.Status == 0)
         {
-            return RedirectToAction(nameof(Index));
+            TempData["success"] = "Deleted book";
+            return Json(new { success = true });
         }
-        else
-        {
-            // Handle error response
-            return RedirectToAction("Error", "Home");
-        }
+
+        TempData["error"] = response.Message;
+        return Json(new { success = false });
     }
 
-    // POST action to handle checking out a book
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Checkout(int id)
+    public async Task<JsonResult> Checkout(int id)
     {
         var response = await _bookService.CheckoutBookAsync(id);
         if (response.Status == 0)
-        {
-            return RedirectToAction(nameof(Details), new { id });
-        }
-        else
-        {
-            // Handle error response
-            return RedirectToAction("Error", "Home");
-        }
+            return Json(new { success = true });
+
+        TempData["error"] = response.Message;
+        return Json(new { success = false });
     }
 
-    // POST action to handle returning a book
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Return(int id)
+    public async Task<JsonResult> Return(int id)
     {
         var response = await _bookService.ReturnBookAsync(id);
         if (response.Status == 0)
-        {
-            return RedirectToAction(nameof(Details), new { id });
-        }
-        else
-        {
-            // Handle error response
-            return RedirectToAction("Error", "Home");
-        }
+            return Json(new { success = true });
+
+        TempData["error"] = response.Message;
+        return Json(new { success = false });
     }
 
-    // POST action to handle adding an author to a book
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> AddAuthor(int bookId, int authorId)
@@ -190,16 +265,14 @@ public class BookController : Controller
         var response = await _bookService.AddAuthorToBookAsync(bookId, authorId);
         if (response.Status == 0)
         {
+            TempData["success"] = "Added Author To Book";
             return RedirectToAction(nameof(Edit), new { id = bookId });
         }
-        else
-        {
-            // Handle error response
-            return RedirectToAction("Error", "Home");
-        }
+
+        TempData["error"] = response.Message;
+        return RedirectToAction(nameof(Edit));
     }
 
-    // POST action to handle removing an author from a book
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> RemoveAuthor(int bookId, int authorId)
@@ -207,13 +280,12 @@ public class BookController : Controller
         var response = await _bookService.RemoveAuthorFromBookAsync(bookId, authorId);
         if (response.Status == 0)
         {
+            TempData["success"] = "Removed Author From Book";
             return RedirectToAction(nameof(Edit), new { id = bookId });
         }
-        else
-        {
-            // Handle error response
-            return RedirectToAction("Error", "Home");
-        }
+
+        TempData["error"] = response.Message;
+        return RedirectToAction(nameof(Edit));
     }
 }
 

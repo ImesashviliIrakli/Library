@@ -11,6 +11,15 @@
     <a asp-action="Create" class="btn btn-primary">Create New Author</a>
 </p>
 
+<!-- Search Form -->
+<form asp-action="Search" method="get" class="form-inline mb-3">
+    <div class="form-group">
+        <label for="title" class="mr-2">Search author:</label>
+        <input type="text" id="authorName" name="authorName" class="form-control" placeholder="Enter title">
+    </div>
+    <button type="submit" class="btn btn-primary ml-2">Search</button>
+</form>
+
 <table class="table">
     <thead>
         <tr>

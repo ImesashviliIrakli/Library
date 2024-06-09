@@ -63,4 +63,9 @@ public class BookRepository : IBookRepository
 
         await _context.SaveChangesAsync();
     }
+
+    public async Task<IEnumerable<Book>> GetBooksByTitleAsync(string title)
+    {
+        return await _context.Books.Where(x => x.Title.Contains(title)).ToListAsync();
+    }
 }

@@ -1,10 +1,13 @@
 ﻿using Library.UI.Interfaces;
 using Library.UI.Models.AuthorDtos;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Win32;
 using Newtonsoft.Json;
 
 namespace Library.UI.Controllers;
 
+[Authorize]
 public class AuthorController : Controller
 {
     private readonly IAuthorService _authorService;
@@ -25,6 +28,25 @@ public class AuthorController : Controller
         return View(new List<AuthorDto>());
     }
 
+    [HttpGet]
+    public async Task<IActionResult> Search(string authorName)
+    {
+        if (string.IsNullOrEmpty(authorName))
+            return RedirectToAction(nameof(Index));
+
+        var response = await _authorService.GetAuthorsByNameAsync(authorName);
+        if (response.Status == 0)
+        {
+            var authors = JsonConvert.DeserializeObject<List<AuthorDto>>(response.Result.ToString());
+            return View("Index", authors);
+        }
+        else
+        {
+            TempData["error"] = response.Message;
+            return RedirectToAction(nameof(Index));
+        }
+    }
+
     public IActionResult Create()
     {
         return View();
@@ -39,8 +61,11 @@ public class AuthorController : Controller
             var response = await _authorService.AddAuthorAsync(createAuthorDto);
             if (response.Status == 0)
             {
+                TempData["success"] = "Created Author";
+
                 return RedirectToAction(nameof(Index));
             }
+            TempData["error"] = response.Message;
         }
         return View(createAuthorDto);
     }
@@ -53,6 +78,8 @@ public class AuthorController : Controller
             var author = JsonConvert.DeserializeObject<UpdateAuthorDto>(response.Result.ToString());
             return View(author);
         }
+        
+        TempData["error"] = response.Message;
         return View();
     }
 
@@ -65,8 +92,10 @@ public class AuthorController : Controller
             var response = await _authorService.UpdateAuthorAsync(updateAuthorDto.Id, updateAuthorDto);
             if (response.Status == 0)
             {
+                TempData["success"] = "Updated Author";
                 return RedirectToAction(nameof(Index));
             }
+            TempData["error"] = response.Message;
         }
         return View(updateAuthorDto);
     }
@@ -78,9 +107,10 @@ public class AuthorController : Controller
         var response = await _authorService.DeleteAuthorAsync(id);
         if (response.Status == 0)
         {
+            TempData["success"] = "Deleted Author";
             return RedirectToAction(nameof(Index));
         }
-        // Handle error case as needed
+        TempData["error"] = response.Message;
         return RedirectToAction(nameof(Index));
     }
 
@@ -92,6 +122,7 @@ public class AuthorController : Controller
             var author = JsonConvert.DeserializeObject<AuthorDetailsDto>(response.Result.ToString());
             return View(author);
         }
+        TempData["error"] = response.Message;
         return View();
     }
 }

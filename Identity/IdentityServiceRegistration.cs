@@ -37,7 +37,7 @@ public static class IdentityServiceRegistration
                 ValidateIssuerSigningKey = true,
                 ValidateIssuer = true,
                 ValidateAudience = true,
-                ValidateLifetime = true,
+                // ValidateLifetime = true,
                 ClockSkew = TimeSpan.Zero,
                 ValidIssuer = configuration["JwtOptions:Issuer"],
                 ValidAudience = configuration["JwtOptions:Audience"],

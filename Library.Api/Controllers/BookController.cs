@@ -1,14 +1,18 @@
 ﻿using Application.Enums;
+using Application.Exceptions;
 using Application.Interfaces.Services;
 using Application.Models;
 using Application.Models.Book;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Library.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class BooksController : ControllerBase
 {
     private readonly IBookService _bookService;
@@ -24,10 +28,19 @@ public class BooksController : ControllerBase
     public async Task<IActionResult> GetBooks()
     {
         _response.Result = await _bookService.GetAllBooksAsync();
+
         return Ok(_response);
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{title}")]
+    public async Task<IActionResult> GetBooksByTitle(string title)
+    {
+        _response.Result = await _bookService.GetBooksByTitleAsync(title);
+        return Ok(_response);
+
+    }
+
+    [HttpGet("{id:int}")]
     public async Task<IActionResult> GetBook(int id)
     {
         _response.Result = await _bookService.GetBookByIdAsync(id);
@@ -75,16 +88,16 @@ public class BooksController : ControllerBase
     }
 
     [HttpPost("AddAuthorToBook")]
-    public async Task<IActionResult> AddAuthorToBook(int bookId, int authorId)
+    public async Task<IActionResult> AddAuthorToBook([FromBody] BookAuthorDto body)
     {
-        await _bookService.AddAuthorToBookAsync(bookId, authorId);
+        await _bookService.AddAuthorToBookAsync(body.BookId, body.AuthorId);
         return Ok(_response);
     }
 
     [HttpPost("RemoveAuthorFromBook")]
-    public async Task<IActionResult> RemoveAuthorFromBook(int bookId, int authorId)
+    public async Task<IActionResult> RemoveAuthorFromBook([FromBody] BookAuthorDto body)
     {
-        await _bookService.RemoveAuthorFromBookAsync(bookId, authorId);
+        await _bookService.RemoveAuthorFromBookAsync(body.BookId, body.AuthorId);
         return Ok(_response);
     }
 }

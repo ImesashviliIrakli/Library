@@ -2,12 +2,14 @@
 using Application.Interfaces.Services;
 using Application.Models;
 using Application.Models.Author;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Library.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class AuthorsController : ControllerBase
 {
     private readonly IAuthorService _authorService;
@@ -26,10 +28,24 @@ public class AuthorsController : ControllerBase
         return Ok(_response);
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{authorName}")]
+    public async Task<ActionResult> GetAuthorsByName(string authorName)
+    {
+        _response.Result = await _authorService.GetAuthorsByNameAsync(authorName);
+        return Ok(_response);
+    }
+
+    [HttpGet("{id:int}")]
     public async Task<ActionResult> GetAuthor(int id)
     {
         _response.Result = await _authorService.GetAuthorByIdAsync(id);
+        return Ok(_response);
+    }
+
+    [HttpPost("GetAuthorsByIds")]
+    public async Task<ActionResult> GetAuthorsByIds(List<int> ids)
+    {
+        _response.Result = await _authorService.GetAuthorsByIdsAsync(ids);
         return Ok(_response);
     }
 

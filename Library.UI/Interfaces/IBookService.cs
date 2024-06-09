@@ -6,6 +6,7 @@ namespace Library.UI.Interfaces;
 public interface IBookService
 {
     Task<ResponseDto> GetAllBooksAsync();
+    Task<ResponseDto> GetBooksByTitleAsync(string title);
     Task<ResponseDto> GetBookByIdAsync(int id);
     Task<ResponseDto> AddBookAsync(CreateBookDto createBookDto);
     Task<ResponseDto> UpdateBookAsync(int id, UpdateBookDto updateBookDto);

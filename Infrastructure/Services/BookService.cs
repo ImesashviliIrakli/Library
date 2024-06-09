@@ -125,6 +125,15 @@ public class BookService : IBookService
         await _bookRepository.RemoveAuthorFromBookAsync(book, authorToRemove);
     }
 
+    public async Task<IEnumerable<BookListDto>> GetBooksByTitleAsync(string title)
+    {
+        var books = await _bookRepository.GetBooksByTitleAsync(title);
+
+        var result = _mapper.Map<IEnumerable<BookListDto>>(books);
+
+        return result;
+    }
+
     private async Task Validate(Book book)
     {
         var validationResult = await _bookValidator.ValidateAsync(book);

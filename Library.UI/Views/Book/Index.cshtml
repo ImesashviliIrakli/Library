@@ -7,12 +7,21 @@
 <h1>Books</h1>
 
 <div class="container">
-        
     <p>
         <a asp-action="Create" class="btn btn-primary">Create New Book</a>
     </p>
 
     <div class="row">
+        <!-- Search Form -->
+        <form asp-action="Search" method="get" class="form-inline mb-3">
+            <div class="form-group">
+                <label for="title" class="mr-2">Search Title:</label>
+                <input type="text" id="title" name="title" class="form-control" placeholder="Enter title">
+            </div>
+            <button type="submit" class="btn btn-primary ml-2">Search</button>
+        </form>
+
+        <!-- Display Books -->
         @foreach (var book in Model)
         {
             <div class="col-md-4 mb-3">
@@ -20,10 +29,25 @@
                     <img src="@book.Image" class="card-img-top" alt="Book Image">
                     <div class="card-body">
                         <h5 class="card-title">@book.Title</h5>
+                        <h6>Authors:</h6>
+                        <ul>
+                            @foreach (var item in book.Authors)
+                            {
+                                <li>@item.FirstName @item.LastName</li>
+                            }
+                        </ul>
                         <p class="card-text">@book.Description</p>
                         <a href="@Url.Action("Details", new { id = book.Id })" class="btn btn-primary">Details</a>
                         <a href="@Url.Action("Edit", new { id = book.Id })" class="btn btn-secondary">Edit</a>
                         <button class="btn btn-danger" onclick="deleteBook(@book.Id)">Delete</button>
+                        @if (book.IsTaken)
+                        {
+                            <button class="btn btn-warning" onclick="returnBook(@book.Id)">Return</button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-success" onclick="checkoutBook(@book.Id)">Checkout</button>
+                        }
                     </div>
                 </div>
             </div>
@@ -31,17 +55,40 @@
     </div>
 </div>
 
+<form id="deleteForm" method="post" asp-action="DeleteConfirmed" asp-controller="Book" style="display:none;">
+    @Html.AntiForgeryToken()
+    <input type="hidden" id="deleteBookId" name="id" value="">
+</form>
+
+<form id="checkoutForm" method="post" asp-action="Checkout" asp-controller="Book" style="display:none;">
+    @Html.AntiForgeryToken()
+    <input type="hidden" id="checkoutBookId" name="id" value="">
+</form>
+
+<form id="returnForm" method="post" asp-action="Return" asp-controller="Book" style="display:none;">
+    @Html.AntiForgeryToken()
+    <input type="hidden" id="returnBookId" name="id" value="">
+</form>
+
 @section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         function deleteBook(id) {
             var confirmDelete = confirm("Are you sure you want to delete this book?");
             if (confirmDelete) {
+                var form = $('#deleteForm');
+                $('#deleteBookId').val(id);
+
                 $.ajax({
-                    url: '/Books/Delete/' + id,
-                    type: 'DELETE',
+                    url: form.attr('action'),
+                    type: 'POST',
+                    data: form.serialize(),
                     success: function (result) {
-                        // Handle success
-                        location.reload(); // Reload the page after successful delete
+                        if (result.success) {
+                            location.reload(); // Reload the page after successful delete
+                        } else {
+                            alert(result.message || "An error occurred while deleting the book.");
+                        }
                     },
                     error: function (xhr, status, error) {
                         // Handle error
@@ -49,6 +96,50 @@
                     }
                 });
             }
+        }
+
+        function checkoutBook(id) {
+            var form = $('#checkoutForm');
+            $('#checkoutBookId').val(id);
+
+            $.ajax({
+                url: form.attr('action'),
+                type: 'POST',
+                data: form.serialize(),
+                success: function (result) {
+                    if (result.success) {
+                        location.reload(); // Reload the page after successful checkout
+                    } else {
+                        alert(result.message || "An error occurred during checkout.");
+                    }
+                },
+                error: function (xhr, status, error) {
+                    // Handle error
+                    console.error(xhr.responseText);
+                }
+            });
+        }
+
+        function returnBook(id) {
+            var form = $('#returnForm');
+            $('#returnBookId').val(id);
+
+            $.ajax({
+                url: form.attr('action'),
+                type: 'POST',
+                data: form.serialize(),
+                success: function (result) {
+                    if (result.success) {
+                        location.reload(); // Reload the page after successful return
+                    } else {
+                        alert(result.message || "An error occurred during return.");
+                    }
+                },
+                error: function (xhr, status, error) {
+                    // Handle error
+                    console.error(xhr.responseText);
+                }
+            });
         }
     </script>
 }
