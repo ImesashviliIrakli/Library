@@ -30,7 +30,7 @@ public class BookController : Controller
         else
         {
             TempData["error"] = response.Message;
-            return RedirectToAction("Error", "Home");
+            return RedirectToAction("Index", "Home");
         }
     }
 

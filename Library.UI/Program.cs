@@ -1,7 +1,6 @@
 using Library.UI.Interfaces;
 using Library.UI.Services;
 using Library.UI.Utility;
-using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,7 +9,11 @@ var configuration = builder.Configuration;
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddHttpClient();
+
+builder.Services.AddHttpClient("LibraryAPI")
+    .AddHttpMessageHandler<TokenExpirationHandler>();
+builder.Services.AddTransient<TokenExpirationHandler>();
+
 builder.Services.AddHttpClient<IAccountService, AccountService>();
 builder.Services.AddHttpClient<IAuthorService, AuthorService>();
 builder.Services.AddHttpClient<IBookService, BookService>();
@@ -22,14 +25,15 @@ builder.Services.AddScoped<IAuthorService, AuthorService>();
 builder.Services.AddScoped<IBookService, BookService>();
 
 // Authentication
-builder.Services.AddAuthentication("LibraryCookie")
-    .AddCookie("LibraryCookie", options =>
-    {
-        options.Cookie.Name = "LibraryAuthCookie";
-        options.ExpireTimeSpan = TimeSpan.FromHours(10);
-        options.LoginPath = "/Account/Login";
-        options.AccessDeniedPath = "/Account/AccessDenied";
-    });
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = "LibraryCookie";
+    options.DefaultChallengeScheme = "LibraryCookie";
+}).AddCookie("LibraryCookie", options =>
+{
+    options.LoginPath = "/Account/Login";
+    options.LogoutPath = "/Account/Logout";
+});
 
 SD.LibraryAPIBase = builder.Configuration["ServiceUrls:LibraryAPI"];
 
