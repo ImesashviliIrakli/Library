@@ -46,7 +46,7 @@ public class AccountController : Controller
         }
         else
         {
-            TempData["error"] = login.Message;
+            TempData["error"] = "Email or Password Incorrect try again";
             return View(loginRequestDto);
         }
     }
